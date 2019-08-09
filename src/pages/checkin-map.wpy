@@ -1,0 +1,315 @@
+<style lang="less">
+input {
+  border: 1rpx solid #ccc;
+  display: inline-block;
+  width: 200rpx;
+  border-radius: 5rpx;
+}
+.info {
+  padding-right: 10rpx;
+}
+.userinfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.userinfo-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+}
+
+.userinfo-nickname {
+  color: #aaa;
+}
+.slide {
+  width: 640rpx;
+  display: flex;
+  border: 1rpx solid #ccc;
+  font-size: 28rpx;
+  align-items: center;
+  box-sizing: border-box;
+  .left {
+    width: 750rpx;
+    padding: 20rpx;
+  }
+  .right {
+    display: flex;
+    .right-item {
+      padding: 20rpx 30rpx;
+      background-color: red;
+      color: #fff;
+    }
+  }
+}
+</style>
+<wxs module="m1" lang="babel">
+const getTime = (time) => {
+  let date = getDate(time);
+  let hour = date.getHours();
+  let mins = date.getMinutes();
+  let sec = date.getSeconds();
+  let milli = date.getMilliseconds();
+  return `${hour}:${mins}:${sec}.${milli}`;
+}
+module.exports.getTime = getTime;
+</wxs>
+<template>
+  <div class="container">
+
+    <map
+      id="myMap"
+      style="width: 100%; height: 300px;"
+      longitude="120.724113"
+      latitude="31.365488"
+      show-location="true"
+      scale="14"
+      subkey="UKWBZ-IM4KX-JWR4X-7VAJX-TLIG7-HDBMG"
+      markers="{{markers}}"
+      bindmarkertap="markertap"
+    ></map>
+
+    <view>
+      <button @tap="setting">设置</button>
+      <button @tap="checkin">签到</button>
+    </view>
+  </div>
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import eventHub from '../common/eventHub';
+import { mapState } from '@wepy/x';
+import store from '../store';
+import testMixin from '../mixins/test';
+
+wepy.page({
+  store,
+  config: {
+    navigationBarTitleText: 'test'
+  },
+
+  hooks: {
+    // Page 级别 hook, 只对当前 Page 的 setData 生效。
+    'before-setData': function(dirty) {
+      if (Math.random() < 0.2) {
+        console.log('setData canceled');
+        return false; // Cancel setData
+      }
+      dirty.time = +new Date();
+      return dirty;
+    }
+  },
+
+  mixins: [testMixin],
+
+  data: {
+    src: '../assets/imgs/pingpong.png',
+    markers: [
+      {
+        iconPath: '../assets/imgs/pingpong.png',
+        id: 0,
+        title: '湖滨社区',
+        latitude: 31.365488,
+        longitude: 120.724113,
+        width: 32,
+        height: 32
+      },
+      {
+        iconPath: '../assets/imgs/pingpong.png',
+        id: 1,
+        title: '居委会',
+        latitude: 31.343388,
+        longitude: 120.723113,
+        width: 32,
+        height: 32
+      }
+    ],
+
+    text: 'asdfasdf',
+    inputmodel: 'v-model',
+    mynum: 20,
+    userInfo: {
+      nickName: '加载中...'
+    },
+    currentTime: +new Date(),
+    setTimeoutTitle: '标题三秒后会被修改',
+    count: 0,
+    netrst: '',
+    groupList: [
+      {
+        id: 1,
+        name: '点击改变',
+        list: [
+          {
+            childid: '1.1',
+            childname: '子项，点我改变'
+          },
+          {
+            childid: '1.2',
+            childname: '子项，点我改变'
+          },
+          {
+            childid: '1.3',
+            childname: '子项，点我改变'
+          }
+        ]
+      },
+      {
+        id: 2,
+        name: '点击改变',
+        list: [
+          {
+            childid: '2.1',
+            childname: '子项，点我改变'
+          },
+          {
+            childid: '2.2',
+            childname: '子项，点我改变'
+          },
+          {
+            childid: '2.3',
+            childname: '子项，点我改变'
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: '点击改变',
+        list: [
+          {
+            childid: '3.1',
+            childname: '子项，点我改变'
+          }
+        ]
+      }
+    ]
+  },
+
+  computed: {
+    ...mapState(['counter']),
+    testcomputed() {
+      return 'computed - ' + this.mynum;
+    }
+  },
+
+  methods: {
+    markertap(e) {
+      console.log(e.$wx.markerId);
+    },
+    checkin() {
+      const name = wx.getStorageSync('name');
+
+      console.log(name);
+
+      // wx.request({
+      //   url:
+      //     'http://122.112.247.228:3000/tcrs/v1/group/groups?name=&offset=1&limit=10',
+      //   success: function(d) {
+      //     console.log(d);
+      //   }
+      // });
+    },
+
+    setting() {
+      wx.setStorageSync('name', '丁毅辉')
+    },
+
+    tap() {
+      throw 'can not go here';
+    },
+    plus() {
+      this.mynum++;
+    },
+    toast() {
+      let promise = this.$invoke('toast', 'show', {
+        title: '自定义标题',
+        img:
+          'https://raw.githubusercontent.com/kiinlam/wetoast/master/images/star.png'
+      });
+
+      promise.then(d => {
+        console.log('toast done');
+      });
+    },
+    mixintap() {
+      console.log('do noting from ' + this.$is);
+    },
+    communicate() {
+      let counters = this.$children.filter(
+        com => com.$is === 'components/counter'
+      );
+
+      // Get children counter
+      counters[0].num++;
+      counters[1].num--;
+
+      eventHub.$emit('app-launch', { a: 1 }, { b: 2 });
+    },
+    request() {
+      let self = this;
+      let i = 10;
+      let map = [
+        'MA==',
+        'MQo=',
+        'Mg==',
+        'Mw==',
+        'NA==',
+        'NQ==',
+        'Ng==',
+        'Nw==',
+        'OA==',
+        'OQ=='
+      ];
+      while (i--) {
+        wx.request({
+          url:
+            'https://www.madcoder.cn/tests/sleep.php?time=1&t=css&c=' +
+            map[i] +
+            '&i=' +
+            i,
+          success: function(d) {
+            if (d.statusCode !== 200) {
+              self.netrst += d.statusCode + '.';
+            } else {
+              self.netrst += d.data + '.';
+            }
+          }
+        });
+      }
+    },
+    counterEmit(num) {
+      console.log(`${this.$is} receive event, the number is: ${num}`);
+    }
+  },
+
+  created() {
+    let self = this;
+    self.currentTime = +new Date();
+
+    self.setTimeoutTitle = '标题三秒后会被修改';
+    setTimeout(() => {
+      self.setTimeoutTitle = '到三秒了';
+    }, 3000);
+
+    wx.getUserInfo({
+      success(res) {
+        self.userInfo = res.userInfo;
+      }
+    });
+  }
+});
+</script>
+<config>
+{
+    navigationBarTitleText: '1111',
+    usingComponents: {
+      panel: '~@/components/panel',
+      counter: '~counter',
+      list: '../components/list',
+      group: '../components/group',
+      "slide-view": "module:miniprogram-slide-view",
+    }
+}
+</config>
